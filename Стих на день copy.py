@@ -5,8 +5,37 @@ import re
 from datetime import datetime#для определения времени
 import tkinter as tk
 import os
-from tkinter import ttk
+from tkinter import font as tkfont
 import sys
+
+# Создание пользовательского виджета label для возможности использовать атрибут wrap=word 
+class WordWrapLabel(tk.Label):
+    def __init__(self, master=None, **kwargs):
+        tk.Label.__init__(self, master, **kwargs)
+        self.bind('<Configure>', self._wrap_text)
+
+    def _wrap_text(self, event=None):
+        wrap_length = self.winfo_width()
+        text = self['text']
+        self['text'] = self._wrap_by_word(text, wrap_length)
+
+    def _wrap_by_word(self, text, wrap_length):
+        lines = []
+        line = []
+        for word in text.split():
+            if self._get_text_width(' '.join(line + [word])) <= wrap_length:
+                line.append(word)
+            else:
+                lines.append(' '.join(line))
+                line = [word]
+        lines.append(' '.join(line))
+        return '\n'.join(lines)
+
+    def _get_text_width(self, text):
+        font = tkfont.Font(font=self['font'])
+        return font.measure(text)
+
+
 #сразу устанавливаем некоторые значения
 now=datetime.now()
 now_day=now.strftime("%Y-%m-%d")# выводим значения времени в формате год-месяц-день
@@ -49,12 +78,14 @@ def output_window(day,verse_for_the_day,description):
         window.title("Стих на день")
         window['padx'] = 5
         window['pady'] = 5
-        frame_labels = tk.Frame(window)     
-        lbl1 = tk.Label(frame_labels, text=day)
-        
-        lbl1.pack()
+        frame_labels = tk.Frame(window)         
         frame_labels.pack(fill=tk.BOTH, expand=True)
+        lbl1 = tk.Label(frame_labels, text=day)
+        lbl1.pack()
 
+        wrap_label = WordWrapLabel(window, text=verse_for_the_day)
+        wrap_label.pack(fill='both', expand=True)
+        
         frame_text = tk.Frame(window,)  
         frame_text.pack()
 
@@ -66,12 +97,11 @@ def output_window(day,verse_for_the_day,description):
         scrollbar.config(command=text_widget.yview)
 
         text = description
-        text_widget.insert(tk.END,verse_for_the_day+"\n"+"\n")
+        # text_widget.insert(tk.END,verse_for_the_day+"\n"+"\n")
         text_widget.insert(tk.END, text)
 
         text_widget.config(state="disabled")
         window.mainloop()
-
 filename="jw_page.html"
 
 def create_html_file(filename):
@@ -103,7 +133,7 @@ try:
         #поиск на страничке по регулярному выражению
         pattern = re.compile(rf'\b{day_of_week}\b', re.IGNORECASE)
         day = soup.find(text=pattern) #поиск дня недели
-        print(day.text)
+       
         verse_for_the_day=day.find_next('p').text#поиск стиха на день
         description=day.find_next(class_='sb').text#поиск обьяснения стиха
         
