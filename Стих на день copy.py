@@ -53,6 +53,11 @@ def get_day_of_week():
     }
     day_of_week = today.strftime('%A')  # Получаем название дня недели на английском
     return days_dict.get(day_of_week, '')  # Возвращаем название дня на русском из словаря, если есть
+def return_app(window):
+    window.destroy()
+    os.startfile('Стих_на_день.exe')
+
+
 
 day_of_week=get_day_of_week()
 
@@ -62,8 +67,18 @@ def display_error(error):
     window.geometry("250x200")
     window.minsize(250, 200)
 
+    reload_symbol = u"\U0001F501"  # Символ обозначения перезагрузки
+
+    # Создание шрифта для символа
+    reload_font = tkfont.Font(size=20)  # Установка размера шрифта
+
+    # Создание кнопки с измененным размером шрифта
+    button = tk.Button(window, text=reload_symbol, font=reload_font, command=lambda: return_app(window))
+    button.pack()
+
+
     text_widget = tk.Text(window, wrap="word")
-    text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+    text_widget.pack()
 
     text = str(error)
     text_widget.insert(tk.END, text)
@@ -117,6 +132,7 @@ def create_html_file(filename):
     except Exception as e:
         display_error('Произошла ошибка при создании файла, Попробуйте сами создать файл "jw_page.html" и перенести его в папку в которой находится приложение :)' )
 create_html_file(filename)
+
 try:
      with open(filename,"r",encoding="utf-8") as file:# если  первая строка в файле совпадает с сегодняшним днем то
        firstline = next(file, '').strip()
@@ -127,13 +143,10 @@ try:
                 
         soup=BeautifulSoup(jwa,"lxml")# устанавливаем обьект библиотеки beautiful soup
 
-
-        # Устанавливаем русскую локаль
-
         #поиск на страничке по регулярному выражению
         pattern = re.compile(rf'\b{day_of_week}\b', re.IGNORECASE)
         day = soup.find(text=pattern) #поиск дня недели
-       
+        
         verse_for_the_day=day.find_next('p').text#поиск стиха на день
         description=day.find_next(class_='sb').text#поиск обьяснения стиха
         
@@ -142,7 +155,7 @@ try:
        else:
             file.close()
             url = "https://wol.jw.org/ru/wol/h/r2/lp-u/"+now_day # формируем ссылку
-            print(url)# проверяем
+            # print(url)# проверяем
             #пытаемся походить на обычного пользователя
             headers = {
                  "accept": "image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
@@ -155,7 +168,7 @@ try:
                 file_obj.write(day_of_week)
                 file_obj.write("\n")
                 file_obj.write(src)
-                print("файл успешно записан")
+                # print("файл успешно записан")
            
             with open(filename,'r',encoding="utf-8") as file:       
                 jwa=file.read()
@@ -174,5 +187,6 @@ try:
             output_window(day,verse_for_the_day,description)
             
 except Exception as e:
-        display_error(e)
+        display_error('Проверьте соединение с Интернетом')
         
+       
