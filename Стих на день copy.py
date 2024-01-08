@@ -55,7 +55,7 @@ def get_day_of_week():
     return days_dict.get(day_of_week, '')  # Возвращаем название дня на русском из словаря, если есть
 def return_app(window):
     window.destroy()
-    os.startfile('Стих_на_день.exe')
+    os.startfile('Стих_на_день.exe')# поменяйте расширение на py если запускаете в виде файла.Я сделал такое расширение потому что финал приложения в exe.
 
 
 
